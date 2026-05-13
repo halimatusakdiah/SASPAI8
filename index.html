@@ -1,0 +1,628 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Clock, AlertTriangle, CheckCircle, XCircle, List, ArrowLeft, ArrowRight, Save, X, BookOpen } from 'lucide-react';
+
+// === DATA 50 SOAL PAI KELAS 8 SEMESTER 2 (KURIKULUM MERDEKA) ===
+const questions = [
+  // BAB: Inspirasi Al-Qur'an (Ummatan Wasathan & Moderasi)
+  { id: 1, text: "Dalam Q.S. Al-Baqarah ayat 143, Allah SWT menjadikan umat Islam sebagai 'Ummatan Wasathan'. Arti dari 'Ummatan Wasathan' adalah...", options: ["A. Umat yang tertinggal", "B. Umat yang paling kuat", "C. Umat pertengahan/moderat", "D. Umat penakluk"], correct: 2, explanation: "Ummatan Wasathan berarti umat pertengahan, moderat, adil, dan tidak ekstrem dalam menjalankan agama maupun kehidupan." },
+  { id: 2, text: "Sikap moderat dalam beragama (Wasathiyah) mengajarkan kita untuk...", options: ["A. Membenci agama lain", "B. Seimbang antara urusan dunia dan akhirat", "C. Meninggalkan urusan dunia sama sekali", "D. Mencampuradukkan ajaran berbagai agama"], correct: 1, explanation: "Wasathiyah adalah keseimbangan, termasuk seimbang dalam mengejar kebahagiaan dunia dan akhirat tanpa berlebihan." },
+  { id: 3, text: "Umat Islam dijadikan saksi atas perbuatan manusia, dan Rasulullah menjadi saksi atas umat Islam. Hal ini merupakan penegasan dari Q.S...", options: ["A. Al-Baqarah: 143", "B. Al-Hujurat: 13", "C. Al-Ikhlas: 1-4", "D. Al-Maidah: 3"], correct: 0, explanation: "Q.S. Al-Baqarah: 143 menjelaskan kedudukan umat Islam sebagai ummatan wasathan dan saksi bagi manusia." },
+  { id: 4, text: "Perilaku ekstrem atau berlebih-lebihan dalam beragama yang sangat dilarang dalam Islam disebut...", options: ["A. Tasamuh", "B. Ghuluw", "C. Tawadhu", "D. Qana'ah"], correct: 1, explanation: "Ghuluw artinya berlebih-lebihan atau melampaui batas dalam beragama yang dapat memicu fanatisme buta." },
+  { id: 5, text: "Salah satu contoh penerapan sikap 'Ummatan Wasathan' di lingkungan sekolah adalah...", options: ["A. Memaksa teman sekelas memeluk Islam", "B. Berteman dengan semua orang tanpa membedakan status sosial", "C. Hanya mau belajar pelajaran agama saja", "D. Sering bolos karena ingin memperbanyak shalat Dhuha"], correct: 1, explanation: "Berteman tanpa diskriminasi adalah wujud keadilan dan keseimbangan (moderat) dalam kehidupan sosial." },
+  { id: 6, text: "Tujuan Allah menciptakan manusia bersuku-suku dan berbangsa-bangsa menurut Q.S. Al-Hujurat ayat 13 adalah untuk...", options: ["A. Saling berperang", "B. Saling menguasai", "C. Saling mengenal (Lita'arafu)", "D. Saling menjauhi"], correct: 2, explanation: "Lita'arafu (saling mengenal) adalah tujuan keberagaman agar manusia saling belajar dan bersinergi, bukan berpecah belah." },
+  { id: 7, text: "Orang yang paling mulia di sisi Allah SWT berdasarkan Q.S. Al-Hujurat ayat 13 adalah orang yang paling...", options: ["A. Kaya", "B. Cerdas", "C. Tampan/Cantik", "D. Bertakwa"], correct: 3, explanation: "Inna akramakum 'inda Allahi atqakum (Sesungguhnya yang paling mulia di antara kamu di sisi Allah adalah orang yang paling bertakwa)." },
+  { id: 8, text: "Sikap saling menghormati dan menghargai antar umat beragama disebut...", options: ["A. Takabur", "B. Tasamuh", "C. Ta'awun", "D. Takaful"], correct: 1, explanation: "Tasamuh adalah istilah bahasa Arab untuk toleransi, yaitu sikap menghargai perbedaan." },
+  { id: 9, text: "Berikut ini yang BUKAN merupakan prinsip toleransi dalam Islam adalah...", options: ["A. Tidak ada paksaan dalam beragama", "B. Boleh mengikuti ibadah agama lain untuk menghormati", "C. Menghargai hak hidup tetangga walau beda agama", "D. Berbuat baik dan adil kepada non-muslim yang damai"], correct: 1, explanation: "Toleransi dalam Islam terbatas pada ranah sosial (muamalah), tidak mencampuradukkan akidah dan ibadah (sinkretisme)." },
+  { id: 10, text: "Keseimbangan dalam menyikapi perbedaan pendapat agar tidak terjadi perpecahan umat sejalan dengan prinsip...", options: ["A. Tasyaddud", "B. Tawazun", "C. Takfiri", "D. Taqlid"], correct: 1, explanation: "Tawazun berarti seimbang/harmonis. Mampu menyikapi perbedaan dengan kepala dingin dan adil." },
+
+  // BAB: Meyakini Nabi dan Rasul Allah
+  { id: 11, text: "Percaya dan meyakini dengan sepenuh hati bahwa Allah telah mengutus para rasul untuk membimbing manusia merupakan pengertian iman kepada rasul, yang termasuk Rukun Iman ke...", options: ["A. 2", "B. 3", "C. 4", "D. 5"], correct: 2, explanation: "Rukun iman: 1. Allah, 2. Malaikat, 3. Kitab, 4. Rasul, 5. Hari Kiamat, 6. Qadha dan Qadar." },
+  { id: 12, text: "Perbedaan utama antara Nabi dan Rasul adalah...", options: ["A. Nabi menerima wahyu untuk dirinya, Rasul wajib menyampaikannya kepada umat", "B. Nabi pasti rasul, rasul belum tentu nabi", "C. Rasul berjenis kelamin laki-laki, nabi bisa perempuan", "D. Nabi memiliki kitab, rasul tidak"], correct: 0, explanation: "Nabi menerima wahyu untuk diamalkan sendiri, sedangkan Rasul diberi tugas tambahan untuk menyampaikan risalah (tabligh) kepada umatnya." },
+  { id: 13, text: "Sifat wajib rasul yang berarti cerdas adalah...", options: ["A. Shiddiq", "B. Amanah", "C. Tabligh", "D. Fathanah"], correct: 3, explanation: "Fathanah artinya cerdas/pintar, sangat dibutuhkan rasul untuk menjawab tantangan dan berdakwah." },
+  { id: 14, text: "Sifat mustahil bagi rasul yang berarti menyembunyikan kebenaran adalah...", options: ["A. Kizib", "B. Khianat", "C. Kitman", "D. Baladah"], correct: 2, explanation: "Kitman (menyembunyikan) adalah lawan dari sifat Tabligh (menyampaikan)." },
+  { id: 15, text: "Rasul memiliki sifat Jaiz, yaitu sifat kemanusiaan yang biasa (seperti makan, minum, berkeluarga) yang disebut...", options: ["A. Ma'sum", "B. Aradhul Basyariyah", "C. Ulul Azmi", "D. Uswatun Hasanah"], correct: 1, explanation: "Aradhul Basyariyah adalah sifat-sifat kemanusiaan yang ada pada rasul selama tidak mengurangi derajat kerasulannya." },
+  { id: 16, text: "Para rasul dijaga oleh Allah dari berbuat dosa dan kesalahan. Sifat keterjagaan ini disebut...", options: ["A. Mahfuz", "B. Ma'sum", "C. Mabrur", "D. Makbul"], correct: 1, explanation: "Ma'sum (terpelihara) berarti Allah senantiasa menjaga para nabi dan rasul dari dosa." },
+  { id: 17, text: "Gelar Ulul Azmi diberikan kepada rasul yang memiliki...", options: ["A. Harta kekayaan paling banyak", "B. Keteguhan hati, kesabaran, dan ketabahan yang luar biasa dalam berdakwah", "C. Umur yang paling panjang di dunia", "D. Jumlah pengikut yang paling besar"], correct: 1, explanation: "Ulul Azmi berarti orang-orang yang memiliki keteguhan hati (kesabaran super ekstra) dalam menghadapi cobaan dakwah." },
+  { id: 18, text: "Siapakah rasul Ulul Azmi yang diuji dengan dibakar hidup-hidup oleh Raja Namrud namun apinya menjadi dingin?", options: ["A. Nabi Nuh a.s.", "B. Nabi Ibrahim a.s.", "C. Nabi Musa a.s.", "D. Nabi Isa a.s."], correct: 1, explanation: "Nabi Ibrahim a.s. diselamatkan Allah saat dibakar oleh Raja Namrud, dengan menjadikan api tersebut dingin." },
+  { id: 19, text: "Nabi penutup zaman, yang tidak ada lagi nabi setelahnya, memiliki gelar...", options: ["A. Khatamul Anbiya wal Mursalin", "B. Khalilullah", "C. Kalimullah", "D. Ruhullah"], correct: 0, explanation: "Khatamul Anbiya wal Mursalin artinya penutup para nabi dan rasul, yaitu Nabi Muhammad SAW." },
+  { id: 20, text: "Cara meneladani sifat Amanah dari Rasulullah di sekolah adalah...", options: ["A. Menyampaikan titipan uang kas kelas dengan jujur", "B. Membantu teman menyontek saat ujian", "C. Sering mentraktir teman", "D. Berani menentang guru"], correct: 0, explanation: "Amanah berarti dapat dipercaya, salah satu wujudnya adalah menjaga dan menyampaikan titipan dengan benar." },
+
+  // BAB: Menjadi Generasi Toleran & Harmoni (Lanjutan)
+  { id: 21, text: "Di Indonesia terdapat beragam agama dan budaya. Sikap seorang pelajar muslim yang benar dalam menghadapi hal ini adalah...", options: ["A. Memilih-milih teman hanya yang seagama", "B. Mengejek budaya daerah lain", "C. Saling menghormati dan bekerja sama dalam urusan sosial", "D. Membenci warga negara asing"], correct: 2, explanation: "Toleransi dan kerukunan mengharuskan kita bekerjasama dalam kebaikan sosial bermasyarakat tanpa membedakan agama." },
+  { id: 22, text: "Piagam Madinah yang dibuat oleh Rasulullah SAW merupakan salah satu bukti nyata dari...", options: ["A. Kekejaman perang", "B. Monopoli ekonomi Islam", "C. Toleransi dan konstitusi kerukunan antar umat beragama", "D. Paksaan memeluk Islam"], correct: 2, explanation: "Piagam Madinah melindungi kebebasan beragama dan hak-hak sosial warga non-muslim di Madinah." },
+  { id: 23, text: "Ketika tetangga yang berbeda agama sedang merayakan hari raya mereka, sikap kita...", options: ["A. Ikut ibadah mereka di tempat ibadahnya", "B. Mengganggu perayaan mereka", "C. Membiarkan dan menghormati hak mereka untuk merayakan", "D. Melarang mereka merayakan"], correct: 2, explanation: "Prinsip 'Lakum dinukum waliyadin' (Untukmu agamamu, untukku agamaku). Kita menghormati tanpa harus ikut ibadahnya." },
+  { id: 24, text: "Sikap fanatik yang berlebihan terhadap kelompok sendiri dan merendahkan kelompok lain disebut...", options: ["A. Objektif", "B. Chauvinisme / Ashabiyah", "C. Nasionalisme", "D. Patriotisme"], correct: 1, explanation: "Ashabiyah (fanatisme golongan) sangat dilarang karena merusak persaudaraan dan keadilan." },
+  { id: 25, text: "Kata 'Harmoni' dalam kehidupan bermasyarakat berarti...", options: ["A. Keselarasan, keserasian, dan kerukunan hidup", "B. Suara musik yang keras", "C. Persaingan yang ketat", "D. Kemenangan satu pihak atas pihak lain"], correct: 0, explanation: "Harmoni adalah kondisi hidup rukun, damai, bersatu dan saling berdampingan." },
+  { id: 26, text: "Toleransi tidak berlaku dalam hal...", options: ["A. Jual beli di pasar", "B. Kerja bakti membersihkan desa", "C. Akidah dan tata cara ibadah", "D. Meminjamkan alat tulis"], correct: 2, explanation: "Dalam Islam, batas toleransi adalah Muamalah (sosial). Kita tidak boleh kompromi dalam masalah akidah dan ibadah khusus." },
+  { id: 27, text: "Persaudaraan sesama umat Islam disebut...", options: ["A. Ukhuwah Islamiyah", "B. Ukhuwah Wathaniyah", "C. Ukhuwah Insaniyah", "D. Ukhuwah Basyariyah"], correct: 0, explanation: "Ukhuwah Islamiyah adalah ikatan persaudaraan yang didasari oleh kesamaan aqidah Islam." },
+  { id: 28, text: "Persaudaraan sesama warga negara tanpa membedakan suku, ras, dan agama disebut...", options: ["A. Ukhuwah Islamiyah", "B. Ukhuwah Wathaniyah", "C. Ukhuwah Insaniyah", "D. Ukhuwah Nabawiyah"], correct: 1, explanation: "Ukhuwah Wathaniyah artinya persaudaraan sebangsa dan setanah air." },
+  { id: 29, text: "Fitnah dan penyebaran berita hoaks dapat merusak harmoni masyarakat. Hukum menyebarkan hoaks dalam Islam adalah...", options: ["A. Mubah", "B. Sunnah", "C. Makruh", "D. Haram"], correct: 3, explanation: "Menyebarkan kebohongan, fitnah, dan hoaks adalah dosa besar dan diharamkan." },
+  { id: 30, text: "Tindakan melakukan verifikasi, meneliti kebenaran berita sebelum menyebarkannya disebut...", options: ["A. Tasyakkur", "B. Tabayyun", "C. Tafakkur", "D. Takabbur"], correct: 1, explanation: "Tabayyun adalah mencari kejelasan (cek dan ricek) suatu informasi sebelum mempercayai atau menyebarkannya." },
+
+  // BAB: Muamalah (Jual Beli, Khiyar, dan Riba)
+  { id: 31, text: "Dalam Fikih Islam, kegiatan tukar-menukar barang dengan barang atau uang dengan barang yang didasarkan pada kerelaan disebut...", options: ["A. Riba", "B. Jual beli", "C. Syirkah", "D. Qiradh"], correct: 1, explanation: "Jual beli (al-bai') secara bahasa adalah menukar sesuatu dengan sesuatu. Secara istilah adalah menukar harta dengan harta berdasarkan kerelaan." },
+  { id: 32, text: "Hukum asal dari kegiatan jual beli dalam Islam adalah...", options: ["A. Wajib", "B. Sunnah", "C. Mubah (Boleh)", "D. Haram"], correct: 2, explanation: "Allah menghalalkan jual beli dan mengharamkan riba. Hukum asalnya adalah mubah (boleh) selama tidak ada larangan syariat di dalamnya." },
+  { id: 33, text: "Berikut ini yang termasuk rukun jual beli adalah...", options: ["A. Penjual, pembeli, barang, uang, dan saksi", "B. Penjual, pembeli, barang, dan ijab kabul", "C. Penjual, barang, diskon, dan nota", "D. Pembeli, barang, uang, dan materai"], correct: 1, explanation: "Rukun jual beli: ada pihak penjual, pihak pembeli, ada barang/alat tukar (uang), dan ada sighat atau ijab kabul (akad)." },
+  { id: 34, text: "Membeli buah-buahan yang masih sangat muda (ijon) di pohon dan belum jelas takarannya, hukumnya dilarang karena mengandung unsur...", options: ["A. Riba", "B. Gharar (Ketidakjelasan)", "C. Monopoli", "D. Paksaan"], correct: 1, explanation: "Sistem ijon dilarang karena mengandung gharar (ketidakjelasan) kualitas dan kuantitas panen yang dapat merugikan salah satu pihak." },
+  { id: 35, text: "Hak yang dimiliki oleh penjual dan pembeli untuk meneruskan atau membatalkan transaksi jual beli agar tidak terjadi penyesalan disebut...", options: ["A. Syarat", "B. Riba", "C. Khiyar", "D. Wakaf"], correct: 2, explanation: "Khiyar adalah hak kebebasan memilih untuk melangsungkan atau membatalkan akad jual beli." },
+  { id: 36, text: "Khiyar majlis adalah hak memilih untuk membatalkan atau meneruskan jual beli dengan batas waktu selama...", options: ["A. Barang belum dipakai", "B. Penjual dan pembeli belum berpisah dari tempat transaksi", "C. Terdapat cacat pada barang", "D. Masih dalam waktu 3 hari"], correct: 1, explanation: "Khiyar majlis berlaku selama penjual dan pembeli masih berada di tempat transaksi (majlis) dan belum berpisah secara fisik." },
+  { id: 37, text: "Tambahan pembayaran yang disyaratkan oleh orang yang meminjamkan uang kepada orang yang berhutang pada saat pengembalian disebut...", options: ["A. Laba", "B. Diskon", "C. Riba Nasiah", "D. Sedekah"], correct: 2, explanation: "Riba Nasiah adalah tambahan/bunga yang disyaratkan karena adanya penundaan waktu pembayaran hutang piutang." },
+  { id: 38, text: "Allah SWT secara tegas melarang praktik riba. Larangan riba ini terdapat dalam Al-Qur'an, dan hukum melakukannya adalah...", options: ["A. Makruh", "B. Sunnah", "C. Mubah", "D. Haram mutlak"], correct: 3, explanation: "Allah SWT berfirman dalam Surah Al-Baqarah ayat 275: '...Allah menghalalkan jual beli dan mengharamkan riba'." },
+  { id: 39, text: "Menukar emas 24 karat seberat 10 gram dengan emas 18 karat seberat 12 gram secara langsung termasuk jenis...", options: ["A. Riba Nasiah", "B. Riba Fadhl", "C. Pinjaman Qardh", "D. Jual Beli Sah"], correct: 1, explanation: "Riba Fadhl adalah riba yang terjadi karena adanya kelebihan/tambahan pada saat tukar menukar barang ribawi (seperti emas, perak) yang sejenis." },
+  { id: 40, text: "Hikmah terbesar diharamkannya praktik riba dalam agama Islam adalah untuk...", options: ["A. Memperkaya para pengusaha besar", "B. Mencegah pemerasan dan eksploitasi dari orang kaya terhadap orang miskin", "C. Mengurangi jumlah uang yang beredar di masyarakat", "D. Menghambat pertumbuhan ekonomi pasar"], correct: 1, explanation: "Riba dilarang karena bersifat zalim dan menindas. Sistem riba membuat yang kaya makin kaya dengan memeras keringat orang miskin yang sedang butuh dana." },
+
+  // BAB: Meneladani Ilmuwan Muslim Daulah Abbasiyah
+  { id: 41, text: "Daulah Abbasiyah mencapai puncak kejayaan ilmu pengetahuan ('Golden Age of Islam') terutama pada masa pemerintahan...", options: ["A. Abu Jafar Al-Mansur", "B. Harun Ar-Rasyid dan Al-Ma'mun", "C. Muawiyah dan Yazid", "D. Salahuddin Al-Ayyubi"], correct: 1, explanation: "Harun Ar-Rasyid mendirikan Baitul Hikmah yang kemudian disempurnakan oleh Khalifah Al-Ma'mun menjadi pusat ilmu dunia." },
+  { id: 42, text: "Pusat pemerintahan Bani Abbasiyah yang juga menjadi kota metropolitan ilmu pengetahuan saat itu adalah...", options: ["A. Damaskus", "B. Makkah", "C. Baghdad", "D. Kordoba"], correct: 2, explanation: "Baghdad dibangun oleh Khalifah Abu Jafar Al-Mansur dan menjadi pusat peradaban dan ilmu pengetahuan Bani Abbasiyah." },
+  { id: 43, text: "Lembaga perpustakaan, pusat penerjemahan, dan observatorium terbesar pada masa Abbasiyah bernama...", options: ["A. Baitul Mal", "B. Darul Arqam", "C. Baitul Hikmah", "D. Masjid Al-Azhar"], correct: 2, explanation: "Baitul Hikmah (Rumah Kebijaksanaan) adalah perpustakaan dan pusat riset raksasa di Baghdad." },
+  { id: 44, text: "Ilmuwan muslim penemu angka nol (0) dan perintis ilmu Aljabar yang karyanya menjadi akar Algoritma komputer modern adalah...", options: ["A. Al-Farabi", "B. Al-Kindi", "C. Al-Khawarizmi", "D. Al-Ghazali"], correct: 2, explanation: "Al-Khawarizmi menulis kitab Al-Jabr wa Al-Muqabala dan namanya dilatinkan menjadi Algorithm (Algoritma)." },
+  { id: 45, text: "Tokoh kedokteran muslim terkemuka pada masa Abbasiyah yang menulis ensiklopedia medis 'Al-Qanun fi at-Tibb' (The Canon of Medicine) adalah...", options: ["A. Ibnu Sina", "B. Ibnu Khaldun", "C. Al-Battani", "D. Jabir bin Hayyan"], correct: 0, explanation: "Ibnu Sina (Avicenna) dijuluki Bapak Kedokteran Modern, bukunya dipakai di universitas Eropa selama berabad-abad." },
+  { id: 46, text: "Ilmuwan muslim yang dikenal sebagai 'Bapak Kimia Modern' yang menemukan proses penyulingan dan kristalisasi adalah...", options: ["A. Ibnu Rusyd", "B. Jabir bin Hayyan", "C. Ibnu Al-Haytham", "D. Al-Razi"], correct: 1, explanation: "Jabir bin Hayyan (Geber) adalah pionir dalam metodologi ilmiah di bidang ilmu kimia." },
+  { id: 47, text: "Tokoh ilmuwan yang dijuluki Bapak Optik karena penemuannya tentang prinsip kerja kamera obscura dan fungsi mata adalah...", options: ["A. Ibnu Al-Haytham", "B. Al-Ghazali", "C. Ibnu Batutah", "D. Al-Khawarizmi"], correct: 0, explanation: "Ibnu Al-Haytham (Alhazen) merevolusi ilmu optik melalui kitabnya Al-Manazir." },
+  { id: 48, text: "Salah satu faktor yang menyebabkan pesatnya ilmu pengetahuan di masa Abbasiyah adalah...", options: ["A. Banyaknya peperangan", "B. Adanya gerakan penerjemahan buku-buku kuno (Yunani, Persia, India) ke bahasa Arab", "C. Pelarangan warga belajar bahasa asing", "D. Pemusnahan buku-buku lama"], correct: 1, explanation: "Khalifah sangat mendukung gerakan penerjemahan dengan menggaji penerjemah dengan emas seberat buku yang diterjemahkan." },
+  { id: 49, text: "Daulah Abbasiyah runtuh pada tahun 1258 M akibat serangan bangsa Mongol yang dipimpin oleh...", options: ["A. Jenghis Khan", "B. Hulagu Khan", "C. Timur Lenk", "D. Kubilai Khan"], correct: 1, explanation: "Pasukan Hulagu Khan membumihanguskan Baghdad dan menghancurkan Baitul Hikmah hingga air sungai Tigris menghitam karena tinta." },
+  { id: 50, text: "Sikap yang dapat kita teladani dari ilmuwan muslim masa Bani Abbasiyah sebagai seorang pelajar adalah...", options: ["A. Suka berdebat kusir", "B. Belajar giat, rajin membaca, dan haus akan ilmu pengetahuan", "C. Membanggakan kejayaan masa lalu tanpa usaha belajar", "D. Mencontek karya orang lain"], correct: 1, explanation: "Semangat literasi, membaca, riset, dan tidak mudah menyerah adalah kunci kejayaan ilmuwan muslim masa lalu." }
+];
+
+// Configuration
+const EXAM_DURATION = 90 * 60; // 90 minutes in seconds
+const MAX_WARNINGS = 2; // Warn twice, 3rd time auto-submit
+const POINTS_PER_QUESTION = 2;
+
+// >>> GANTI URL INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA NANTI <<<
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbznRWxKPWTfJQUvG_ovKGI6Jp_yDuP1l9QieLFZRWpuvHjxp_I862F8H10vVDoFR0iI/exec";
+
+export default function App() {
+  const [examState, setExamState] = useState('login'); // 'login', 'running', 'finished', 'review'
+  const [student, setStudent] = useState({ name: '', className: '8 A' });
+  const [answers, setAnswers] = useState({});
+  const [currentQIndex, setCurrentQIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(EXAM_DURATION);
+  const [warnings, setWarnings] = useState(0);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [warningMessage, setWarningMessage] = useState('');
+  const [showNavModal, setShowNavModal] = useState(false);
+  const [scoreData, setScoreData] = useState({ correct: 0, wrong: 0, score: 0 });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+  const [loginError, setLoginError] = useState('');
+
+  // References for anti-cheat
+  const examStateRef = useRef(examState);
+  examStateRef.current = examState;
+  
+  const warningsRef = useRef(warnings);
+  warningsRef.current = warnings;
+
+  // Anti-Cheat System (Visibility Change & Blur)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && examStateRef.current === 'running') {
+        triggerWarning();
+      }
+    };
+
+    const handleWindowBlur = () => {
+      if (examStateRef.current === 'running') {
+        triggerWarning();
+      }
+    };
+
+    // Add listeners
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleWindowBlur);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleWindowBlur);
+    };
+  }, []);
+
+  const triggerWarning = () => {
+    // Prevent triggering multiple times at once
+    if (showWarningModal) return;
+
+    const newWarnings = warningsRef.current + 1;
+    setWarnings(newWarnings);
+
+    if (newWarnings === 1) {
+      setWarningMessage("PERINGATAN 1: Anda terdeteksi keluar dari aplikasi ujian/membuka tab lain. Jangan ulangi ini atau ujian Anda akan dihentikan otomatis.");
+      setShowWarningModal(true);
+    } else if (newWarnings === 2) {
+      setWarningMessage("PERINGATAN 2 (TERAKHIR): Anda kembali melanggar aturan. Jika Anda keluar satu kali lagi, sistem akan OTOMATIS mengumpulkan jawaban Anda secara paksa!");
+      setShowWarningModal(true);
+    } else {
+      // 3rd strike
+      setWarningMessage("PELANGGARAN MAKSIMAL: Ujian Anda telah dihentikan oleh sistem karena terdeteksi keluar aplikasi lebih dari 2 kali.");
+      setShowWarningModal(true);
+      forceSubmit();
+    }
+  };
+
+  // Timer System
+  useEffect(() => {
+    let timer;
+    if (examState === 'running' && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            forceSubmit();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [examState, timeLeft]);
+
+  const forceSubmit = () => {
+    if (examStateRef.current !== 'running') return;
+    processSubmit(true);
+  };
+
+  const handleStart = (e) => {
+    e.preventDefault();
+    if (!student.name.trim()) {
+      setLoginError("Silakan isi nama Anda terlebih dahulu!");
+      return;
+    }
+    setLoginError('');
+    
+    // Attempt fullscreen for better mobile experience
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen blocked"));
+      }
+    } catch(e) {}
+
+    setExamState('running');
+  };
+
+  const handleAnswer = (qId, optionIndex) => {
+    setAnswers({ ...answers, [qId]: optionIndex });
+  };
+
+  const handleSubmitRequest = () => {
+    setShowConfirmSubmit(true);
+  };
+
+  const processSubmit = async (forced = false) => {
+    setShowConfirmSubmit(false);
+    setIsSubmitting(true);
+    
+    // Calculate Score
+    let correct = 0;
+    let wrong = 0;
+    questions.forEach(q => {
+      if (answers[q.id] === q.correct) correct++;
+      else wrong++;
+    });
+    
+    const finalScore = correct * POINTS_PER_QUESTION;
+    setScoreData({ correct, wrong, score: finalScore });
+    
+    // Exit Fullscreen
+    try {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(e => console.log("Exit fullscreen blocked"));
+      }
+    } catch(e){}
+
+    // Save to spreadsheet
+    try {
+      const formData = new FormData();
+      formData.append("nama", student.name);
+      formData.append("kelas", student.className);
+      formData.append("benar", correct);
+      formData.append("salah", wrong);
+      formData.append("nilai", finalScore);
+
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors' 
+      });
+      console.log("Data dikirim ke server");
+    } catch (err) {
+      console.error("Gagal menyimpan ke spreadsheet:", err);
+    }
+
+    setExamState('finished');
+    setIsSubmitting(false);
+  };
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  // UI COMPONENTS
+
+  if (examState === 'login') {
+    return (
+      <div className="min-h-screen bg-emerald-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full border border-emerald-100">
+          <div className="text-center mb-6">
+            <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+              <BookOpen className="w-8 h-8 text-emerald-600" />
+            </div>
+            <h1 className="text-2xl font-black text-gray-800 tracking-tight">SUMATIF AKHIR SEMESTER GENAP</h1>
+            <h2 className="text-lg text-emerald-600 font-bold mt-1">SMPN 38 BANDAR LAMPUNG</h2>
+            <p className="text-sm text-gray-500 mt-2 font-medium bg-gray-100 py-1 rounded-full">PAI | Kumer Kelas 8</p>
+          </div>
+          
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 text-sm text-yellow-800">
+            <p className="font-bold mb-1 flex items-center text-yellow-700"><AlertTriangle className="w-4 h-4 mr-1"/> Anti-Kecurangan Aktif</p>
+            Jangan <strong>keluar aplikasi, tekan home, atau pindah tab</strong> selama ujian! Ujian akan dikumpulkan otomatis jika melanggar.
+          </div>
+
+          <form onSubmit={handleStart} className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Nama Lengkap Siswa</label>
+              <input 
+                type="text" 
+                required
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                placeholder="Ketik nama Anda..."
+                value={student.name}
+                onChange={e => setStudent({...student, name: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Kelas</label>
+              <select 
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition appearance-none"
+                value={student.className}
+                onChange={e => setStudent({...student, className: e.target.value})}
+              >
+                <option value="8 A">Kelas 8 A</option>
+                <option value="8 B">Kelas 8 B</option>
+                <option value="8 C">Kelas 8 C</option>
+                <option value="8 D">Kelas 8 D</option>
+              </select>
+            </div>
+            {loginError && <p className="text-red-500 text-sm font-bold text-center mt-2">{loginError}</p>}
+            <button 
+              type="submit"
+              className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl mt-4 shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl transition-all active:scale-[0.98]"
+            >
+              MULAI UJIAN SEKARANG
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (examState === 'running') {
+    const q = questions[currentQIndex];
+    const totalAnswered = Object.keys(answers).length;
+
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col select-none">
+        
+        {/* Warning Modal (Anti-Cheat) */}
+        {showWarningModal && (
+          <div className="fixed inset-0 bg-red-900 bg-opacity-95 flex items-center justify-center z-50 p-4 text-center">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+              <AlertTriangle className="w-20 h-20 text-red-600 mx-auto mb-4 animate-pulse" />
+              <h3 className="text-2xl font-black text-red-600 mb-2">PELANGGARAN!</h3>
+              <p className="text-gray-700 font-medium mb-6 text-sm md:text-base leading-relaxed">{warningMessage}</p>
+              {warnings <= 2 ? (
+                <button 
+                  onClick={() => setShowWarningModal(false)}
+                  className="w-full bg-red-600 text-white font-bold py-3.5 rounded-xl active:bg-red-700 shadow-lg"
+                >
+                  SAYA MENGERTI & TIDAK MENGULANGI
+                </button>
+              ) : (
+                <p className="font-bold text-gray-500 p-3 bg-gray-100 rounded-xl">Memproses Pengumpulan Otomatis...</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Confirm Submit Modal */}
+        {showConfirmSubmit && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 text-center">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+              <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-black text-gray-800 mb-2">Kumpulkan Ujian?</h3>
+              <p className="text-gray-600 font-medium mb-6 text-sm">Apakah Anda yakin ingin mengumpulkan ujian? Pastikan semua soal telah terjawab.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirmSubmit(false)}
+                  className="flex-1 bg-gray-200 text-gray-800 font-bold py-3 rounded-xl hover:bg-gray-300"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={() => processSubmit(false)}
+                  className="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700"
+                >
+                  Ya, Kumpulkan
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Daftar Soal */}
+        {showNavModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-end z-40">
+            <div className="bg-white w-full max-w-[320px] h-full p-4 overflow-y-auto shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+              <div className="flex justify-between items-center mb-6 border-b pb-4">
+                <div>
+                  <h3 className="font-black text-lg text-gray-800">Daftar Navigasi Soal</h3>
+                  <p className="text-xs font-medium text-gray-500 mt-1">Terjawab: <span className="text-emerald-600">{totalAnswered}</span>/{questions.length}</p>
+                </div>
+                <button onClick={() => setShowNavModal(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+                  <X className="w-5 h-5 text-gray-600"/>
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-5 gap-2 mb-4">
+                {questions.map((item, idx) => {
+                  const isAnswered = answers[item.id] !== undefined;
+                  const isCurrent = idx === currentQIndex;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => { setCurrentQIndex(idx); setShowNavModal(false); }}
+                      className={`h-11 rounded-lg text-sm font-bold border transition-all flex items-center justify-center shadow-sm
+                        ${isCurrent ? 'ring-2 ring-blue-500 ring-offset-1 scale-105 z-10' : ''}
+                        ${isAnswered ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <div className="mt-auto pt-4 pb-2 border-t bg-white">
+                <button 
+                  onClick={() => {setShowNavModal(false); handleSubmitRequest();}}
+                  className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold flex items-center justify-center shadow-lg hover:bg-emerald-700"
+                >
+                  <Save className="w-5 h-5 mr-2" /> KUMPULKAN UJIAN
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Top Header */}
+        <header className="bg-emerald-700 text-white px-4 py-3 shadow-md sticky top-0 z-30">
+          <div className="flex justify-between items-center max-w-3xl mx-auto">
+            <div className="flex-1 min-w-0 pr-4">
+              <h1 className="font-bold truncate text-sm md:text-base">{student.name}</h1>
+              <p className="text-[11px] md:text-xs opacity-80 font-medium">Kelas {student.className}</p>
+            </div>
+            <div className={`flex items-center px-3 py-1.5 rounded-lg font-mono font-bold text-sm shadow-inner shrink-0
+              ${timeLeft < 300 ? 'bg-red-500 animate-pulse' : 'bg-emerald-800'}`}>
+              <Clock className="w-4 h-4 mr-1.5" />
+              {formatTime(timeLeft)}
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 w-full max-w-3xl mx-auto pb-28">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6 mb-4">
+            
+            <div className="flex justify-between items-center mb-5 pb-3 border-b border-gray-100">
+              <span className="font-black text-gray-800 bg-gray-100 px-3 py-1 rounded-lg text-sm">
+                Soal {currentQIndex + 1} <span className="font-medium text-gray-500">/ {questions.length}</span>
+              </span>
+              {warnings > 0 && (
+                <span className="text-xs font-bold text-red-600 bg-red-100 px-2.5 py-1 rounded-full flex items-center">
+                  <AlertTriangle className="w-3.5 h-3.5 mr-1"/> {warnings}/2
+                </span>
+              )}
+            </div>
+            
+            <h2 className="text-[16px] md:text-lg font-medium text-gray-800 mb-6 leading-relaxed">
+              {q.text}
+            </h2>
+
+            <div className="space-y-3">
+              {q.options.map((opt, idx) => {
+                const isSelected = answers[q.id] === idx;
+                return (
+                  <label 
+                    key={idx} 
+                    className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all duration-200
+                      ${isSelected 
+                        ? 'border-emerald-500 bg-emerald-50/50 shadow-sm' 
+                        : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'}`}
+                  >
+                    <div className={`flex items-center justify-center w-6 h-6 rounded-full border-2 mt-0.5 shrink-0 transition-colors
+                      ${isSelected ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300 bg-white'}`}>
+                      {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                    </div>
+                    
+                    {/* Hidden radio input for accessibility/form structure */}
+                    <input 
+                      type="radio" 
+                      name={`q-${q.id}`} 
+                      value={idx}
+                      checked={isSelected}
+                      onChange={() => handleAnswer(q.id, idx)}
+                      className="hidden"
+                    />
+                    <span className={`ml-3 text-[15px] md:text-base leading-snug ${isSelected ? 'font-medium text-emerald-900' : 'text-gray-700'}`}>
+                      {opt}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </main>
+
+        {/* Bottom Navigation (MOBILE OPTIMIZED: Text Always Visible) */}
+        <footer className="bg-white border-t border-gray-200 p-2.5 fixed bottom-0 w-full z-30 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] pb-safe">
+          <div className="max-w-3xl mx-auto flex justify-between items-center gap-2">
+            
+            <button 
+              onClick={() => setCurrentQIndex(Math.max(0, currentQIndex - 1))}
+              disabled={currentQIndex === 0}
+              className="flex flex-col md:flex-row items-center justify-center px-2 py-2 md:py-3 bg-gray-100 text-gray-600 rounded-xl font-bold disabled:opacity-40 transition-colors active:bg-gray-200 flex-1 max-w-[100px] md:max-w-[140px]"
+            >
+              <ArrowLeft className="w-5 h-5 mb-1 md:mb-0 md:mr-1.5" /> 
+              <span className="text-[10px] md:text-sm tracking-wide">SEBELUMNYA</span>
+            </button>
+            
+            <button 
+              onClick={() => setShowNavModal(true)}
+              className="flex flex-col md:flex-row items-center justify-center px-2 py-2 md:py-3 bg-blue-50 text-blue-700 rounded-xl font-bold transition-colors active:bg-blue-100 border border-blue-100 flex-1"
+            >
+              <List className="w-5 h-5 mb-1 md:mb-0 md:mr-1.5" /> 
+              <span className="text-[10px] md:text-sm tracking-wide">DAFTAR SOAL</span>
+            </button>
+
+            {currentQIndex === questions.length - 1 ? (
+              <button 
+                onClick={handleSubmitRequest}
+                disabled={isSubmitting}
+                className="flex flex-col md:flex-row items-center justify-center px-2 py-2 md:py-3 bg-emerald-600 text-white rounded-xl font-bold disabled:opacity-70 transition-colors active:bg-emerald-700 flex-1 max-w-[100px] md:max-w-[140px] shadow-sm shadow-emerald-200"
+              >
+                {isSubmitting ? (
+                  <span className="text-[10px] md:text-sm tracking-wide my-1">PROSES...</span>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5 mb-1 md:mb-0 md:mr-1.5" />
+                    <span className="text-[10px] md:text-sm tracking-wide">SELESAI</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <button 
+                onClick={() => setCurrentQIndex(Math.min(questions.length - 1, currentQIndex + 1))}
+                className="flex flex-col md:flex-row items-center justify-center px-2 py-2 md:py-3 bg-gray-800 text-white rounded-xl font-bold transition-colors active:bg-gray-900 flex-1 max-w-[100px] md:max-w-[140px]"
+              >
+                <ArrowRight className="w-5 h-5 mb-1 md:mb-0 md:mr-1.5 md:order-2" />
+                <span className="text-[10px] md:text-sm tracking-wide md:order-1">SELANJUTNYA</span>
+              </button>
+            )}
+
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
+  if (examState === 'finished') {
+    return (
+      <div className="min-h-screen bg-emerald-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center border border-emerald-100">
+          <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-14 h-14 text-emerald-500" />
+          </div>
+          <h1 className="text-2xl font-black text-gray-800 mb-2">Ujian Selesai!</h1>
+          <p className="text-gray-600 mb-6 text-sm">Terima kasih, <strong>{student.name}</strong>. Jawaban Anda telah direkam.</p>
+          
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-8">
+            <h2 className="text-xs text-gray-500 uppercase tracking-widest font-black mb-1">Total Nilai</h2>
+            <div className="text-6xl font-black text-emerald-600 mb-4">{scoreData.score}</div>
+            <div className="flex justify-center space-x-8 text-sm text-gray-600 font-medium">
+              <div className="bg-white px-3 py-1.5 rounded-lg border shadow-sm"><span className="text-emerald-500 font-black text-lg">{scoreData.correct}</span> Benar</div>
+              <div className="bg-white px-3 py-1.5 rounded-lg border shadow-sm"><span className="text-red-500 font-black text-lg">{scoreData.wrong}</span> Salah</div>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setExamState('review')}
+            className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition active:scale-95"
+          >
+            LIHAT KUNCI JAWABAN & ALASAN
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (examState === 'review') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6 pb-20">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 mb-6 sticky top-4 z-10 flex justify-between items-center">
+            <div>
+              <h1 className="font-black text-lg md:text-xl text-gray-800">Review Hasil Ujian</h1>
+              <p className="text-sm font-medium text-gray-500">Nilai Anda: <span className="font-bold text-emerald-600">{scoreData.score}</span> / 100</p>
+            </div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-bold hover:bg-red-200 transition"
+            >
+              Keluar
+            </button>
+          </div>
+
+          <div className="space-y-5">
+            {questions.map((q, idx) => {
+              const userAnswer = answers[q.id];
+              const isCorrect = userAnswer === q.correct;
+              const hasAnswered = userAnswer !== undefined;
+
+              return (
+                <div key={q.id} className={`bg-white rounded-2xl shadow-sm border p-5 overflow-hidden relative
+                  ${isCorrect ? 'border-emerald-200' : 'border-red-200'}`}>
+                  
+                  {/* Decorative Side Line */}
+                  <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${isCorrect ? 'bg-emerald-400' : 'bg-red-400'}`} />
+
+                  <div className="flex items-start mb-4 pl-2">
+                    <span className={`w-7 h-7 flex items-center justify-center rounded-full text-white font-bold text-sm mr-3 shrink-0 
+                      ${isCorrect ? 'bg-emerald-500' : 'bg-red-500'}`}>
+                      {idx + 1}
+                    </span>
+                    <h3 className="text-gray-800 font-semibold pt-0.5 text-[15px] leading-relaxed">{q.text}</h3>
+                  </div>
+                  
+                  <div className="ml-10 space-y-2 mb-4">
+                    {q.options.map((opt, oIdx) => {
+                      let bgClass = "bg-gray-50 border-gray-100 text-gray-500";
+                      let icon = null;
+
+                      if (oIdx === q.correct) {
+                        bgClass = "bg-emerald-50 border-emerald-300 text-emerald-800 font-bold shadow-sm";
+                        icon = <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />;
+                      } else if (oIdx === userAnswer && !isCorrect) {
+                        bgClass = "bg-red-50 border-red-300 text-red-800 font-medium opacity-80";
+                        icon = <XCircle className="w-5 h-5 text-red-500 shrink-0" />;
+                      }
+
+                      return (
+                        <div key={oIdx} className={`p-3 border rounded-xl flex justify-between items-start md:items-center text-sm md:text-base ${bgClass}`}>
+                          <span className="mr-2">{opt}</span>
+                          {icon}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {!hasAnswered && (
+                    <div className="ml-10 mb-3 text-sm text-red-600 font-bold bg-red-50 p-2 rounded-lg inline-block">⚠️ Anda tidak menjawab soal ini.</div>
+                  )}
+
+                  <div className="ml-10 bg-blue-50/50 border border-blue-100 p-4 rounded-xl text-sm text-blue-900 mt-2">
+                    <strong className="flex items-center text-blue-700 mb-1">
+                      <BookOpen className="w-4 h-4 mr-1.5" /> Pembahasan:
+                    </strong>
+                    <span className="leading-relaxed block">{q.explanation}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
